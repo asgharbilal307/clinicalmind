@@ -32,32 +32,32 @@ def get_client() -> QdrantClient:
 
 
 def ensure_collections():
-    """Create Qdrant collections if they don't exist."""
+    """Create Qdrant collections if they don't exist, or recreate if dimension changed."""
     client = get_client()
 
     existing = {c.name for c in client.get_collections().collections}
 
-    if ABSTRACTS_COLLECTION not in existing:
-        client.create_collection(
-            collection_name=ABSTRACTS_COLLECTION,
-            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
-        )
-        client.create_payload_index(
-            collection_name=ABSTRACTS_COLLECTION,
-            field_name="pmid",
-            field_schema=PayloadSchemaType.KEYWORD,
-        )
+    # Check if collections exist and have correct dimension
+    def needs_recreation(collection_name: str) -> bool:
+        if collection_name not in existing:
+            return True
+        collection_info = client.get_collection(collection_name)
+        return collection_info.config.params.vectors.size != EMBEDDING_DIM
 
-    if CLAIMS_COLLECTION not in existing:
-        client.create_collection(
-            collection_name=CLAIMS_COLLECTION,
-            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
-        )
-        client.create_payload_index(
-            collection_name=CLAIMS_COLLECTION,
-            field_name="pmid",
-            field_schema=PayloadSchemaType.KEYWORD,
-        )
+    # Delete and recreate collections if needed
+    for collection_name in [ABSTRACTS_COLLECTION, CLAIMS_COLLECTION]:
+        if needs_recreation(collection_name):
+            if collection_name in existing:
+                client.delete_collection(collection_name=collection_name)
+            client.create_collection(
+                collection_name=collection_name,
+                vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+            )
+            client.create_payload_index(
+                collection_name=collection_name,
+                field_name="pmid",
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
