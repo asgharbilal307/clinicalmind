@@ -12,8 +12,8 @@ QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))
 ABSTRACTS_COLLECTION = os.getenv("ABSTRACTS_COLLECTION", "clinicalmind_abstracts")
 CLAIMS_COLLECTION = os.getenv("CLAIMS_COLLECTION", "clinicalmind_claims")
 
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-ai/nomic-embed-text-v1")
-EMBEDDING_DIM = 768  # nomic-embed-text-v1 output dimension
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+EMBEDDING_DIM = 384  # all-MiniLM-L6-v2 output dimension
 
 PUBMED_API_KEY = os.getenv("PUBMED_API_KEY", "")
 PUBMED_BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"

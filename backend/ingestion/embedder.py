@@ -23,7 +23,7 @@ _model: SentenceTransformer | None = None
 def get_model() -> SentenceTransformer:
     global _model
     if _model is None:
-        _model = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
+        _model = SentenceTransformer(EMBEDDING_MODEL)
     return _model
 
 
