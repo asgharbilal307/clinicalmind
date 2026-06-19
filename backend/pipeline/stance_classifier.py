@@ -44,7 +44,13 @@ async def classify_stance(
 ) -> StanceResult | None:
     """Classify one study's stance toward the query."""
     try:
-        claim = payload.get("claim", "") or payload.get("abstract", "")[:300]
+        # Use extracted claim if available, otherwise use abstract
+        claim = payload.get("claim")
+        if not claim:
+            # Fall back to extracting key finding from abstract
+            abstract_text = payload.get("abstract", "")
+            claim = abstract_text[:500] if abstract_text else "No abstract available"
+
         abstract_excerpt = payload.get("abstract", "")[:500]
         title = payload.get("title", "")
 
@@ -90,7 +96,8 @@ async def classify_stance(
             reason=data.get("reason", ""),
         )
 
-    except Exception:
+    except Exception as e:
+        print(f"[stance_classifier] Failed for PMID {payload.get('pmid')}: {e}")
         return None
 
 
