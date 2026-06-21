@@ -27,9 +27,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js dev server
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -98,6 +103,62 @@ async def debate(req: DebateRequest):
     # 4. Synthesise debate
     result = await synthesise_debate(req.query, supporting, contradicting, neutral)
     return result
+
+
+@app.post("/debate/debug")
+async def debate_debug(req: DebateRequest):
+    """
+    TEMPORARY DEBUG ROUTE — shows raw retrieval + stance results
+    before the min-studies-per-side filter is applied.
+    Remove this route once Phase 1 is verified working.
+    """
+    hits = hybrid_retrieve(req.query, top_k=req.top_k)
+
+    if not hits:
+        return {
+            "query": req.query,
+            "retrieved_count": 0,
+            "message": "Retrieval returned ZERO hits. The problem is in retrieval/ingestion, not stance classification. Check /collections/stats and confirm you ingested a topic related to this query.",
+        }
+
+    payloads = [h["payload"] for h in hits]
+    classified = await classify_batch(req.query, payloads, concurrency=5)
+
+    supporting = [s for s in classified if s.stance == "SUPPORTS"]
+    contradicting = [s for s in classified if s.stance == "CONTRADICTS"]
+    neutral = [s for s in classified if s.stance == "NEUTRAL"]
+
+    return {
+        "query": req.query,
+        "retrieved_count": len(hits),
+        "classified_count": len(classified),
+        "failed_classifications": len(hits) - len(classified),
+        "supporting_count": len(supporting),
+        "contradicting_count": len(contradicting),
+        "neutral_count": len(neutral),
+        "retrieved_pmids_and_titles": [
+            {"pmid": h["payload"].get("pmid"), "title": h["payload"].get("title", "")[:100], "score": round(h["score"], 4)}
+            for h in hits
+        ],
+        "stance_breakdown": [
+            {
+                "pmid": s.pmid,
+                "title": s.title[:100],
+                "stance": s.stance,
+                "confidence": s.confidence,
+                "reason": s.reason,
+                "claim": s.claim[:150],
+            }
+            for s in classified
+        ],
+    }
+
+
+@app.get("/cost-status")
+async def cost_status():
+    """Return current cost/request-rate tracker status."""
+    from backend.cost_tracker import default_cost_tracker
+    return default_cost_tracker.get_status()
 
 
 @app.get("/collections/stats")

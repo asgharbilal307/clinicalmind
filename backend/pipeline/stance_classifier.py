@@ -1,8 +1,13 @@
 import json
 import asyncio
+import logging
+from decimal import Decimal
 from groq import AsyncGroq
 from backend.config import GROQ_API_KEY, GROQ_MODEL
 from backend.models.schemas import Abstract, StanceResult, StudyType
+from backend.cost_tracker import default_cost_tracker
+
+logger = logging.getLogger(__name__)
 
 _client: AsyncGroq | None = None
 
@@ -43,14 +48,12 @@ async def classify_stance(
     payload: dict,
 ) -> StanceResult | None:
     """Classify one study's stance toward the query."""
-    try:
-        # Use extracted claim if available, otherwise use abstract
-        claim = payload.get("claim")
-        if not claim:
-            # Fall back to extracting key finding from abstract
-            abstract_text = payload.get("abstract", "")
-            claim = abstract_text[:500] if abstract_text else "No abstract available"
+    if not default_cost_tracker.can_proceed():
+        logger.warning("Cost/rate guard blocked stance classification call — skipping.")
+        return None
 
+    try:
+        claim = payload.get("claim", "") or payload.get("abstract", "")[:300]
         abstract_excerpt = payload.get("abstract", "")[:500]
         title = payload.get("title", "")
 
@@ -70,6 +73,17 @@ async def classify_stance(
             temperature=0.1,
             max_tokens=200,
         )
+
+        usage = getattr(response, "usage", None)
+        if usage:
+            cost = default_cost_tracker.estimate_cost(
+                GROQ_MODEL,
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+            )
+            default_cost_tracker.record_cost(cost)
+        else:
+            default_cost_tracker.record_cost(Decimal("0.00"))
 
         raw = response.choices[0].message.content.strip()
         if raw.startswith("```"):
@@ -96,8 +110,7 @@ async def classify_stance(
             reason=data.get("reason", ""),
         )
 
-    except Exception as e:
-        print(f"[stance_classifier] Failed for PMID {payload.get('pmid')}: {e}")
+    except Exception:
         return None
 
 

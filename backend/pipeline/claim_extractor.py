@@ -1,8 +1,13 @@
 import json
 import asyncio
+import logging
+from decimal import Decimal
 from groq import AsyncGroq
 from backend.config import GROQ_API_KEY, GROQ_MODEL
 from backend.models.schemas import Abstract, Claim
+from backend.cost_tracker import default_cost_tracker
+
+logger = logging.getLogger(__name__)
 
 _client: AsyncGroq | None = None
 
@@ -34,6 +39,10 @@ Abstract: {abstract}"""
 
 async def extract_claim(abstract: Abstract) -> Claim | None:
     """Extract a structured claim from a single abstract."""
+    if not default_cost_tracker.can_proceed():
+        logger.warning("Cost/rate guard blocked claim extraction call — skipping.")
+        return None
+
     try:
         response = await get_groq().chat.completions.create(
             model=GROQ_MODEL,
@@ -48,6 +57,17 @@ async def extract_claim(abstract: Abstract) -> Claim | None:
             temperature=0.1,
             max_tokens=300,
         )
+
+        usage = getattr(response, "usage", None)
+        if usage:
+            cost = default_cost_tracker.estimate_cost(
+                GROQ_MODEL,
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+            )
+            default_cost_tracker.record_cost(cost)
+        else:
+            default_cost_tracker.record_cost(Decimal("0.00"))
 
         raw = response.choices[0].message.content.strip()
 
