@@ -8,7 +8,7 @@ from backend.models.schemas import (
     ConsensusStrength,
     STUDY_TYPE_WEIGHTS,
 )
-from backend.cost_tracker import default_cost_tracker
+from backend.security.cost_tracker import default_cost_tracker
 
 logger = logging.getLogger(__name__)
 
