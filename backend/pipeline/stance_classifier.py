@@ -5,7 +5,7 @@ from decimal import Decimal
 from groq import AsyncGroq
 from backend.config import GROQ_API_KEY, GROQ_MODEL
 from backend.models.schemas import Abstract, StanceResult, StudyType
-from backend.cost_tracker import default_cost_tracker
+from backend.security.cost_tracker import default_cost_tracker
 
 logger = logging.getLogger(__name__)
 
