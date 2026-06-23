@@ -90,4 +90,5 @@ Thumbs.db
 # =========================
 coverage/
 tmp/
-temp/
+temp/node_modules/
+.next/
