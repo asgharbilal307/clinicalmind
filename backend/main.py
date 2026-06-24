@@ -1,11 +1,13 @@
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from backend.models.schemas import IngestRequest, IngestResponse, DebateRequest, DebateOutput
 from backend.ingestion.pubmed import fetch_topic
-from backend.ingestion.embedder import upsert_abstracts, upsert_claims, ensure_collections
+from backend.ingestion.embedder import upsert_abstracts, upsert_claims, upsert_metadata, ensure_collections
 from backend.pipeline.claim_extractor import extract_claims_batch
+from backend.pipeline.metadata_extractor import extract_metadata_batch
 from backend.pipeline.retriever import hybrid_retrieve
 from backend.pipeline.stance_classifier import classify_batch
 from backend.pipeline.debate_synthesiser import synthesise_debate
@@ -25,14 +27,17 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    os.getenv("FRONTEND_URL", ""),  # set this on Render to your Vercel URL
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=[o for o in ALLOWED_ORIGINS if o],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -47,8 +52,9 @@ async def health():
 @app.post("/ingest", response_model=IngestResponse)
 async def ingest(req: IngestRequest):
     """
-    Fetch PubMed abstracts for a topic, embed them, extract claims,
-    and store everything in Qdrant.
+    Fetch PubMed abstracts for a topic, embed them, extract claims
+    and Phase 2 metadata (funding, quality, population), and store
+    everything in Qdrant.
     """
     # 1. Fetch from PubMed
     abstracts = await fetch_topic(req.topic, req.max_results)
@@ -58,13 +64,25 @@ async def ingest(req: IngestRequest):
             detail=f"No abstracts found for topic: {req.topic}",
         )
 
-    # 2. Store abstracts
-    stored = upsert_abstracts(abstracts)
+    # 2. Extract Phase 2 metadata (funding, quality, population)
+    #    Run before upsert so metadata goes into Qdrant in one shot
+    abstract_dicts = [
+        {"pmid": a.pmid, "title": a.title, "abstract": a.abstract}
+        for a in abstracts
+    ]
+    metadata_map = await extract_metadata_batch(abstract_dicts, concurrency=4)
 
-    # 3. Extract claims with LLM
+    # 3. Store abstracts with metadata merged for NEW abstracts
+    stored = upsert_abstracts(abstracts, metadata_map=metadata_map)
+
+    # 4. Update metadata on EXISTING abstracts that were skipped by deduplication
+    #    This ensures Phase 2 fields get written even if the abstract was already stored
+    metadata_updated = upsert_metadata(metadata_map)
+
+    # 5. Extract claims with LLM
     claims = await extract_claims_batch(abstracts, concurrency=5)
 
-    # 4. Store claims (with abstract metadata for enrichment)
+    # 6. Store claims
     abstracts_map = {a.pmid: a for a in abstracts}
     claims_stored = upsert_claims(claims, abstracts_map)
 
@@ -73,7 +91,13 @@ async def ingest(req: IngestRequest):
         abstracts_fetched=len(abstracts),
         abstracts_stored=stored,
         claims_extracted=claims_stored,
-        message=f"Successfully ingested {stored} new abstracts and {claims_stored} claims for '{req.topic}'.",
+        metadata_extracted=len(metadata_map),
+        message=(
+            f"Successfully ingested {stored} new abstracts, "
+            f"{claims_stored} claims, and {len(metadata_map)} metadata records "
+            f"({metadata_updated} existing abstracts updated) "
+            f"for '{req.topic}'."
+        ),
     )
 
 
@@ -157,7 +181,7 @@ async def debate_debug(req: DebateRequest):
 @app.get("/cost-status")
 async def cost_status():
     """Return current cost/request-rate tracker status."""
-    from backend.cost_tracker import default_cost_tracker
+    from backend.security.cost_tracker import default_cost_tracker
     return default_cost_tracker.get_status()
 
 

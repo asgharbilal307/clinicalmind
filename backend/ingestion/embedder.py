@@ -16,6 +16,9 @@ from backend.config import (
 )
 from backend.models.schemas import Abstract, Claim
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 _model: SentenceTransformer | None = None
 
@@ -23,41 +26,52 @@ _model: SentenceTransformer | None = None
 def get_model() -> SentenceTransformer:
     global _model
     if _model is None:
-        _model = SentenceTransformer(EMBEDDING_MODEL)
+        _model = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
     return _model
 
 
 def get_client() -> QdrantClient:
+    import os
+    api_key = os.getenv("QDRANT_API_KEY")
+    if api_key:
+        # Qdrant Cloud — uses HTTPS URL + API key
+        return QdrantClient(
+            host=QDRANT_HOST,
+            port=QDRANT_PORT,
+            api_key=api_key,
+            https=True,
+        )
+    # Local Docker — no auth needed
     return QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
 
 def ensure_collections():
-    """Create Qdrant collections if they don't exist, or recreate if dimension changed."""
+    """Create Qdrant collections if they don't exist."""
     client = get_client()
 
     existing = {c.name for c in client.get_collections().collections}
 
-    # Check if collections exist and have correct dimension
-    def needs_recreation(collection_name: str) -> bool:
-        if collection_name not in existing:
-            return True
-        collection_info = client.get_collection(collection_name)
-        return collection_info.config.params.vectors.size != EMBEDDING_DIM
+    if ABSTRACTS_COLLECTION not in existing:
+        client.create_collection(
+            collection_name=ABSTRACTS_COLLECTION,
+            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+        )
+        client.create_payload_index(
+            collection_name=ABSTRACTS_COLLECTION,
+            field_name="pmid",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
 
-    # Delete and recreate collections if needed
-    for collection_name in [ABSTRACTS_COLLECTION, CLAIMS_COLLECTION]:
-        if needs_recreation(collection_name):
-            if collection_name in existing:
-                client.delete_collection(collection_name=collection_name)
-            client.create_collection(
-                collection_name=collection_name,
-                vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
-            )
-            client.create_payload_index(
-                collection_name=collection_name,
-                field_name="pmid",
-                field_schema=PayloadSchemaType.KEYWORD,
-            )
+    if CLAIMS_COLLECTION not in existing:
+        client.create_collection(
+            collection_name=CLAIMS_COLLECTION,
+            vectors_config=VectorParams(size=EMBEDDING_DIM, distance=Distance.COSINE),
+        )
+        client.create_payload_index(
+            collection_name=CLAIMS_COLLECTION,
+            field_name="pmid",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
@@ -71,15 +85,17 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     return embeddings.tolist()
 
 
-def upsert_abstracts(abstracts: list[Abstract]) -> int:
-    """Embed and store abstracts. Returns number stored."""
+def upsert_abstracts(
+    abstracts: list[Abstract],
+    metadata_map: dict[str, dict] | None = None,
+) -> int:
+    """Embed and store abstracts with optional Phase 2 metadata. Returns number stored."""
     if not abstracts:
         return 0
 
     client = get_client()
     ensure_collections()
 
-    # Check which PMIDs already exist to avoid duplicates
     existing_pmids = _get_existing_pmids(client, ABSTRACTS_COLLECTION)
     new_abstracts = [a for a in abstracts if a.pmid not in existing_pmids]
 
@@ -91,24 +107,28 @@ def upsert_abstracts(abstracts: list[Abstract]) -> int:
 
     points = []
     for abstract, vector in zip(new_abstracts, vectors):
+        payload = {
+            "pmid": abstract.pmid,
+            "title": abstract.title,
+            "abstract": abstract.abstract,
+            "year": abstract.year,
+            "journal": abstract.journal,
+            "authors": abstract.authors,
+            "study_type": abstract.study_type.value,
+            "sample_size": abstract.sample_size,
+        }
+        # Merge Phase 2 metadata if available for this PMID
+        if metadata_map and abstract.pmid in metadata_map:
+            payload.update(metadata_map[abstract.pmid])
+
         points.append(
             PointStruct(
                 id=str(uuid.uuid5(uuid.NAMESPACE_DNS, abstract.pmid)),
                 vector=vector,
-                payload={
-                    "pmid": abstract.pmid,
-                    "title": abstract.title,
-                    "abstract": abstract.abstract,
-                    "year": abstract.year,
-                    "journal": abstract.journal,
-                    "authors": abstract.authors,
-                    "study_type": abstract.study_type.value,
-                    "sample_size": abstract.sample_size,
-                },
+                payload=payload,
             )
         )
 
-    # Upsert in batches of 100
     batch_size = 100
     for i in range(0, len(points), batch_size):
         client.upsert(
@@ -117,6 +137,48 @@ def upsert_abstracts(abstracts: list[Abstract]) -> int:
         )
 
     return len(new_abstracts)
+
+
+def upsert_metadata(metadata_map: dict[str, dict]) -> int:
+    """
+    Update Phase 2 metadata fields on existing Qdrant points without re-embedding.
+    Finds each point by PMID and sets the new payload fields on it.
+    Returns number of points updated.
+    """
+    if not metadata_map:
+        return 0
+
+    client = get_client()
+    updated = 0
+
+    for pmid, meta in metadata_map.items():
+        if not meta:
+            continue
+        try:
+            # Find the point ID for this PMID by scrolling with a filter
+            from qdrant_client.models import Filter, FieldCondition, MatchValue
+            results, _ = client.scroll(
+                collection_name=ABSTRACTS_COLLECTION,
+                scroll_filter=Filter(
+                    must=[FieldCondition(key="pmid", match=MatchValue(value=pmid))]
+                ),
+                limit=1,
+                with_payload=False,
+            )
+            if not results:
+                continue
+
+            point_id = results[0].id
+            client.set_payload(
+                collection_name=ABSTRACTS_COLLECTION,
+                payload=meta,
+                points=[point_id],
+            )
+            updated += 1
+        except Exception as e:
+            logger.warning(f"Failed to update metadata for PMID {pmid}: {e}")
+
+    return updated
 
 
 def upsert_claims(claims: list[Claim], abstracts_map: dict[str, Abstract]) -> int:
