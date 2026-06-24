@@ -82,9 +82,9 @@ async def ingest(req: IngestRequest):
     # 5. Extract claims with LLM
     claims = await extract_claims_batch(abstracts, concurrency=5)
 
-    # 6. Store claims
+    # 6. Store claims (carry Phase 2 metadata into claim payloads too)
     abstracts_map = {a.pmid: a for a in abstracts}
-    claims_stored = upsert_claims(claims, abstracts_map)
+    claims_stored = upsert_claims(claims, abstracts_map, metadata_map=metadata_map)
 
     return IngestResponse(
         topic=req.topic,

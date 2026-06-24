@@ -9,7 +9,7 @@ import asyncio
 import logging
 from decimal import Decimal
 from groq import AsyncGroq
-from backend.config import GROQ_API_KEY, GROQ_MODEL as GROQ_MODEL
+from backend.config import GROQ_API_KEY, GROQ_INGEST_MODEL as GROQ_MODEL
 from backend.security.cost_tracker import default_cost_tracker
 
 logger = logging.getLogger(__name__)

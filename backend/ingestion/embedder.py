@@ -181,7 +181,11 @@ def upsert_metadata(metadata_map: dict[str, dict]) -> int:
     return updated
 
 
-def upsert_claims(claims: list[Claim], abstracts_map: dict[str, Abstract]) -> int:
+def upsert_claims(
+    claims: list[Claim],
+    abstracts_map: dict[str, Abstract],
+    metadata_map: dict[str, dict] | None = None,
+) -> int:
     """Embed and store extracted claims. Returns number stored."""
     if not claims:
         return 0
@@ -199,21 +203,25 @@ def upsert_claims(claims: list[Claim], abstracts_map: dict[str, Abstract]) -> in
     points = []
     for claim, vector in zip(new_claims, vectors):
         abstract = abstracts_map.get(claim.pmid)
+        payload = {
+            "pmid": claim.pmid,
+            "claim": claim.claim,
+            "direction": claim.direction,
+            "outcome": claim.outcome,
+            "title": abstract.title if abstract else "",
+            "year": abstract.year if abstract else None,
+            "journal": abstract.journal if abstract else None,
+            "study_type": abstract.study_type.value if abstract else "unknown",
+            "sample_size": abstract.sample_size if abstract else None,
+        }
+        if metadata_map and claim.pmid in metadata_map:
+            payload.update(metadata_map[claim.pmid])
+
         points.append(
             PointStruct(
                 id=str(uuid.uuid5(uuid.NAMESPACE_DNS, f"claim_{claim.pmid}")),
                 vector=vector,
-                payload={
-                    "pmid": claim.pmid,
-                    "claim": claim.claim,
-                    "direction": claim.direction,
-                    "outcome": claim.outcome,
-                    "title": abstract.title if abstract else "",
-                    "year": abstract.year if abstract else None,
-                    "journal": abstract.journal if abstract else None,
-                    "study_type": abstract.study_type.value if abstract else "unknown",
-                    "sample_size": abstract.sample_size if abstract else None,
-                },
+                payload=payload,
             )
         )
 

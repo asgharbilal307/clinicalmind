@@ -54,6 +54,19 @@ class StanceResult(BaseModel):
     stance: Literal["SUPPORTS", "CONTRADICTS", "NEUTRAL"]
     confidence: float = Field(ge=0.0, le=1.0)
     reason: str
+    funding_source: Optional[str] = None
+    funder_name: Optional[str] = None
+    quality_score: Optional[str] = None
+    quality_reason: Optional[str] = None
+    quality_randomized: Optional[bool] = None
+    quality_blinded: Optional[bool] = None
+    quality_has_control: Optional[bool] = None
+    quality_duration_weeks: Optional[int] = None
+    pop_age_group: Optional[str] = None
+    pop_gender: Optional[str] = None
+    pop_condition: Optional[str] = None
+    pop_country: Optional[str] = None
+    pop_severity: Optional[str] = None
 
 
 class ConsensusStrength(str, Enum):
@@ -87,6 +100,7 @@ class IngestResponse(BaseModel):
     abstracts_fetched: int
     abstracts_stored: int
     claims_extracted: int
+    metadata_extracted: int
     message: str
 
 

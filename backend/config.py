@@ -5,7 +5,8 @@ from decimal import Decimal
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-8-versatile")
+GROQ_INGEST_MODEL = os.getenv("GROQ_INGEST_MODEL", "llama-3.1-8b-instant")
 
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.getenv("QDRANT_PORT", 6333))

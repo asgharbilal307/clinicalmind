@@ -174,9 +174,21 @@ async def synthesise_debate(
             data = json.loads(raw)
             conflict_explanation = data.get("conflict_explanation", "")
             verdict = data.get("verdict", "")
-        except Exception:
-            conflict_explanation = "Could not generate conflict explanation."
-            verdict = "Could not generate verdict."
+        except Exception as e:
+            logger.warning(f"Failed to parse debate synthesis response: {e}")
+            # Generate fallback text based on what we have
+            if len(supporting) > 0 and len(contradicting) > 0:
+                conflict_explanation = f"The {len(supporting)} supporting study/studies and {len(contradicting)} contradicting study/studies suggest complex or heterogeneous evidence on this topic."
+                verdict = f"Evidence is mixed: {len(supporting)} studies support the claim while {len(contradicting)} contradict it. More research is needed to determine clinical significance."
+            elif len(supporting) > 0:
+                conflict_explanation = f"All {len(supporting)} retrieved study/studies support this claim; no contradicting evidence was found."
+                verdict = f"The available evidence ({len(supporting)} study/studies) supports this claim, though more research may be warranted."
+            elif len(contradicting) > 0:
+                conflict_explanation = f"All {len(contradicting)} retrieved study/studies contradict this claim; no supporting evidence was found."
+                verdict = f"The available evidence ({len(contradicting)} study/studies) contradicts this claim."
+            else:
+                conflict_explanation = "Could not generate conflict explanation."
+                verdict = "Could not generate verdict."
 
     return DebateOutput(
         query=query,

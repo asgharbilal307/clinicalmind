@@ -108,6 +108,19 @@ async def classify_stance(
             stance=stance,
             confidence=float(data.get("confidence", 0.5)),
             reason=data.get("reason", ""),
+            funding_source=payload.get("funding_source"),
+            funder_name=payload.get("funder_name"),
+            quality_score=payload.get("quality_score"),
+            quality_reason=payload.get("quality_reason"),
+            quality_randomized=payload.get("quality_randomized"),
+            quality_blinded=payload.get("quality_blinded"),
+            quality_has_control=payload.get("quality_has_control"),
+            quality_duration_weeks=payload.get("quality_duration_weeks"),
+            pop_age_group=payload.get("pop_age_group"),
+            pop_gender=payload.get("pop_gender"),
+            pop_condition=payload.get("pop_condition"),
+            pop_country=payload.get("pop_country"),
+            pop_severity=payload.get("pop_severity"),
         )
 
     except Exception:
