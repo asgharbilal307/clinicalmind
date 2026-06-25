@@ -6,6 +6,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { TensionBar } from "@/components/TensionBar";
 import { StudyCard } from "@/components/StudyCard";
 import { DebateLoadingState } from "@/components/DebateLoadingState";
+import { ForestPlot } from "@/components/ForestPlot";
 
 export default function Home() {
   const [result, setResult] = useState<DebateOutput | null>(null);
@@ -157,6 +158,12 @@ export default function Home() {
                 </div>
               </div>
             )}
+
+            {/* Forest plot */}
+            <ForestPlot
+              supporting={result.supporting}
+              contradicting={result.contradicting}
+            />
 
             {/* Two-camp grid */}
             <div className="grid sm:grid-cols-2 gap-6">
