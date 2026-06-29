@@ -20,22 +20,19 @@ export function DebateLoadingState() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4">
-      <div className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="w-2 h-2 rounded-full animate-bounce"
-            style={{
-              background: "var(--color-ink-soft)",
-              animationDelay: `${i * 0.15}s`,
-            }}
-          />
-        ))}
+    <div className="flex flex-col items-center justify-center py-20 gap-4" aria-live="polite">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(90deg, var(--color-accent), #0b5f4a)" }}>
+          <svg className="w-6 h-6 text-white animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v4" stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="round" />
+            <path d="M12 18v4" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+        <div className="text-left">
+          <p className="text-sm font-medium" style={{ color: "var(--color-ink)" }}>{STAGES[stage]}</p>
+          <p className="text-xs" style={{ color: "var(--color-ink-soft)" }}>This may take a few seconds for complex queries.</p>
+        </div>
       </div>
-      <p className="text-sm" style={{ color: "var(--color-ink-soft)" }}>
-        {STAGES[stage]}
-      </p>
     </div>
   );
 }
