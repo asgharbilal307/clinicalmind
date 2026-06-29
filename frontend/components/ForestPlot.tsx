@@ -137,34 +137,12 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
   );
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{
-        background: "var(--color-background-primary)",
-        border: "1px solid var(--color-border-tertiary)",
-      }}
-    >
+    <div className="rounded-2xl overflow-hidden card-hoverable" style={{ background: "var(--color-background-primary)", border: "1px solid var(--color-border-tertiary)" }}>
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-3 border-b"
-        style={{ borderColor: "var(--color-border-tertiary)" }}
-      >
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
         <div className="flex items-center gap-2">
-          <span
-            className="font-mono text-[10px] uppercase tracking-wider"
-            style={{ color: "var(--color-text-secondary)" }}
-          >
-            Forest Plot
-          </span>
-          <span
-            className="text-[10px] px-2 py-0.5 rounded-full"
-            style={{
-              background: "var(--color-background-secondary)",
-              color: "var(--color-text-tertiary)",
-            }}
-          >
-            bar length = classifier confidence · opacity = study quality
-          </span>
+          <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>Forest Plot</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--color-background-secondary)", color: "var(--color-text-tertiary)" }}>bar length = confidence · opacity = quality</span>
         </div>
         <div className="flex items-center gap-3 text-[10px] font-mono">
           <span style={{ color: "var(--color-contradict)" }}>← Contradicts</span>
@@ -207,12 +185,7 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
               Supporting ({sortedSupporting.length})
             </p>
             {sortedSupporting.map((s) => (
-              <ForestBar
-                key={s.pmid}
-                study={s}
-                direction="support"
-                maxConfidence={maxConfidence}
-              />
+              <ForestBar key={s.pmid} study={s} direction="support" maxConfidence={maxConfidence} />
             ))}
           </div>
         )}
@@ -235,25 +208,14 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
               Contradicting ({sortedContradicting.length})
             </p>
             {sortedContradicting.map((s) => (
-              <ForestBar
-                key={s.pmid}
-                study={s}
-                direction="contradict"
-                maxConfidence={maxConfidence}
-              />
+              <ForestBar key={s.pmid} study={s} direction="contradict" maxConfidence={maxConfidence} />
             ))}
           </div>
         )}
       </div>
 
       {/* Legend */}
-      <div
-        className="flex items-center gap-4 px-4 py-2 border-t"
-        style={{
-          borderColor: "var(--color-border-tertiary)",
-          background: "var(--color-background-secondary)",
-        }}
-      >
+      <div className="flex items-center gap-4 px-4 py-2 border-t" style={{ borderColor: "var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
         <span
           className="text-[10px]"
           style={{ color: "var(--color-text-tertiary)" }}
@@ -281,12 +243,7 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
             </span>
           </div>
         ))}
-        <span
-          className="text-[10px] ml-auto"
-          style={{ color: "var(--color-text-tertiary)" }}
-        >
-          Click any row to open study on PubMed
-        </span>
+        <span className="text-[10px] ml-auto" style={{ color: "var(--color-text-tertiary)" }}>Click any row to open study on PubMed</span>
       </div>
     </div>
   );
