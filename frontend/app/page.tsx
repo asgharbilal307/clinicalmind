@@ -39,7 +39,7 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero */}
-      <header className="px-6 pt-16 pb-8 max-w-4xl mx-auto text-center">
+      <header className="px-6 pt-16 pb-8 max-w-4xl mx-auto text-center hero-card rounded-3xl">
         <p
           className="font-mono text-xs uppercase tracking-[0.2em] mb-4"
           style={{ color: "var(--color-ink-soft)" }}
@@ -62,7 +62,7 @@ export default function Home() {
       </header>
 
       {/* Search */}
-      <section className="px-6 max-w-2xl mx-auto mb-12">
+      <section className="px-6 max-w-3xl mx-auto mb-12 -mt-6">
         <SearchBar onSubmit={runDebate} isLoading={isLoading} />
       </section>
 
