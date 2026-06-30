@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from fastapi.responses import Response
 
 from backend.models.schemas import IngestRequest, IngestResponse, DebateRequest, DebateOutput
 from backend.ingestion.pubmed import fetch_topic
@@ -11,6 +12,8 @@ from backend.pipeline.metadata_extractor import extract_metadata_batch
 from backend.pipeline.retriever import hybrid_retrieve
 from backend.pipeline.stance_classifier import classify_batch
 from backend.pipeline.debate_synthesiser import synthesise_debate
+
+from backend.pipeline.pdf_generator import generate_pdf
 
 
 @asynccontextmanager
@@ -183,6 +186,59 @@ async def cost_status():
     """Return current cost/request-rate tracker status."""
     from backend.security.cost_tracker import default_cost_tracker
     return default_cost_tracker.get_status()
+
+"""
+Paste these into your backend/main.py:
+
+1. Add to imports at the top:
+   from fastapi.responses import Response
+   from backend.pipeline.pdf_generator import generate_pdf
+
+2. Add this endpoint (before /collections/stats):
+"""
+
+# ── Paste this route into main.py ──────────────────────────────────────────
+
+@app.post("/export/pdf")
+async def export_pdf(req: DebateRequest):
+    """
+    Run a debate and return the result as a downloadable PDF research brief.
+    Accepts the same body as /debate.
+    """
+    # 1. Retrieve studies
+    hits = hybrid_retrieve(req.query, top_k=req.top_k)
+    if not hits:
+        raise HTTPException(
+            status_code=404,
+            detail="No studies found. Ingest a relevant topic first.",
+        )
+
+    # 2. Classify stances
+    payloads = [h["payload"] for h in hits]
+    classified = await classify_batch(req.query, payloads, concurrency=5)
+
+    supporting = [s for s in classified if s.stance == "SUPPORTS"]
+    contradicting = [s for s in classified if s.stance == "CONTRADICTS"]
+    neutral = [s for s in classified if s.stance == "NEUTRAL"]
+
+    # 3. Synthesise debate
+    debate = await synthesise_debate(req.query, supporting, contradicting, neutral)
+
+    # 4. Generate PDF
+    pdf_bytes = generate_pdf(debate)
+
+    # 5. Return as downloadable file
+    safe_query = req.query[:40].replace(" ", "_").replace("?", "").replace("/", "-")
+    filename = f"clinicalmind_{safe_query}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(pdf_bytes)),
+        },
+    )
 
 
 @app.get("/collections/stats")
