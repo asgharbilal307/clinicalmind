@@ -77,6 +77,11 @@ class ConsensusStrength(str, Enum):
     INSUFFICIENT = "Insufficient evidence"
 
 
+class FundingBias(BaseModel):
+    bias_flag: bool
+    bias_note: Optional[str] = None
+
+
 class DebateOutput(BaseModel):
     query: str
     consensus_strength: ConsensusStrength
@@ -86,6 +91,7 @@ class DebateOutput(BaseModel):
     conflict_explanation: str
     verdict: str
     total_studies: int
+    funding_bias: Optional[FundingBias] = None
 
 
 # --- Request / Response schemas for API ---
