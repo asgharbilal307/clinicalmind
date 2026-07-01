@@ -48,7 +48,7 @@ export function StudyCard({ study, variant }: StudyCardProps) {
       href={`https://pubmed.ncbi.nlm.nih.gov/${study.pmid}/`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block p-4 rounded-xl bg-white transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2"
+      className="block p-4 rounded-xl bg-[var(--color-paper-raised)] card-hoverable focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{ borderLeft: `3px solid ${styles.border}`, outlineColor: styles.border }}
     >
       {/* Top row — study type + quality + confidence */}

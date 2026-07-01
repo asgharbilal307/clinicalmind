@@ -7,6 +7,8 @@ import { TensionBar } from "@/components/TensionBar";
 import { StudyCard } from "@/components/StudyCard";
 import { DebateLoadingState } from "@/components/DebateLoadingState";
 import { ForestPlot } from "@/components/ForestPlot";
+import { ExportButton } from "@/components/ExportButton";
+import { IngestPanel } from "@/components/IngestPanel";
 
 export default function Home() {
   const [result, setResult] = useState<DebateOutput | null>(null);
@@ -62,8 +64,11 @@ export default function Home() {
       </header>
 
       {/* Search */}
-      <section className="px-6 max-w-3xl mx-auto mb-12 -mt-6">
+      <section className="px-6 max-w-2xl mx-auto mb-12">
         <SearchBar onSubmit={runDebate} isLoading={isLoading} />
+        <div className="mt-3 flex justify-center">
+          <IngestPanel />
+        </div>
       </section>
 
       {/* Results */}
@@ -111,6 +116,11 @@ export default function Home() {
                 contradictingCount={result.contradicting.length}
                 consensusStrength={result.consensus_strength}
               />
+
+              {/* Export button */}
+              <div className="flex justify-end mt-6">
+                <ExportButton query={result.query} topK={20} />
+              </div>
             </div>
 
             {/* Referee verdict */}

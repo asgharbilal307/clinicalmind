@@ -48,8 +48,7 @@ export function SearchBar({ onSubmit, isLoading }: SearchBarProps) {
         <button
           type="submit"
           disabled={isLoading || !value.trim()}
-          className="absolute right-3 bottom-3 px-5 py-2 rounded-full text-sm font-medium transition-opacity disabled:opacity-40"
-          style={{ background: "var(--color-ink)", color: "var(--color-paper)" }}
+          className="absolute right-3 bottom-3 px-5 py-2 rounded-full text-sm font-medium transition-opacity disabled:opacity-40 accent-btn"
         >
           {isLoading ? "Debating…" : "Debate"}
         </button>
