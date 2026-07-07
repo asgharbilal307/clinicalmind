@@ -41,32 +41,43 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       {/* Hero */}
-      <header className="px-6 pt-16 pb-8 max-w-4xl mx-auto text-center hero-card rounded-3xl">
+      <header className="px-6 pt-20 pb-12 max-w-4xl mx-auto text-center hero-card rounded-3xl mt-8 mb-16">
         <p
-          className="font-mono text-xs uppercase tracking-[0.2em] mb-4"
-          style={{ color: "var(--color-ink-soft)" }}
+          className="font-mono text-xs uppercase tracking-[0.3em] mb-6 font-semibold"
+          style={{ color: "var(--color-accent)" }}
         >
-          Evidence Intelligence
+          🔬 Evidence Intelligence
         </p>
         <h1
-          className="text-4xl sm:text-5xl leading-[1.1] mb-4"
+          className="text-5xl sm:text-6xl leading-[1.1] mb-6 font-bold"
           style={{ fontFamily: "var(--font-display)", color: "var(--color-ink)" }}
         >
-          Where evidence argues with itself.
+          Where evidence <span className="gradient-text">argues with itself.</span>
         </h1>
         <p
-          className="text-base sm:text-lg max-w-2xl mx-auto"
+          className="text-base sm:text-lg max-w-2xl mx-auto leading-relaxed"
           style={{ color: "var(--color-ink-soft)" }}
         >
           Most medical AI averages studies into one tidy answer. ClinicalMind splits
           them into camps, weighs the evidence, and tells you why the science disagrees.
         </p>
+        <div className="mt-8 flex justify-center gap-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-effect text-xs">
+            <span>✓</span> Evidence-based
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-effect text-xs">
+            <span>✓</span> Transparent
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-effect text-xs">
+            <span>✓</span> Nuanced
+          </div>
+        </div>
       </header>
 
       {/* Search */}
-      <section className="px-6 max-w-2xl mx-auto mb-12">
+      <section className="px-6 max-w-2xl mx-auto mb-16">
         <SearchBar onSubmit={runDebate} isLoading={isLoading} />
-        <div className="mt-3 flex justify-center">
+        <div className="mt-4 flex justify-center">
           <IngestPanel />
         </div>
       </section>
@@ -77,19 +88,19 @@ export default function Home() {
 
         {error && (
           <div
-            className="max-w-xl mx-auto p-5 rounded-xl text-sm text-center"
-            style={{ background: "var(--color-contradict-bg)", color: "var(--color-contradict)" }}
+            className="max-w-xl mx-auto p-6 rounded-xl text-sm text-center font-medium border"
+            style={{ background: "var(--color-contradict-bg)", color: "var(--color-contradict)", borderColor: "var(--color-contradict)" }}
           >
-            {error}
+            ⚠️ {error}
           </div>
         )}
 
         {isInsufficient && (
           <div
-            className="max-w-xl mx-auto p-6 rounded-xl text-center"
-            style={{ background: "var(--color-neutral-bg)" }}
+            className="max-w-xl mx-auto p-8 rounded-2xl text-center border"
+            style={{ background: "var(--color-neutral-bg)", borderColor: "var(--color-neutral)" }}
           >
-            <p className="text-sm font-medium mb-1" style={{ color: "var(--color-ink)" }}>
+            <p className="text-base font-semibold mb-2" style={{ color: "var(--color-ink)" }}>
               Not enough evidence to stage a debate.
             </p>
             <p className="text-sm" style={{ color: "var(--color-ink-soft)" }}>
@@ -99,17 +110,17 @@ export default function Home() {
         )}
 
         {hasDebate && result && (
-          <div className="space-y-10">
+          <div className="space-y-8">
             {/* Question recap + tension bar */}
             <div
-              className="p-6 rounded-2xl"
-              style={{ background: "var(--color-paper-raised)", border: "1px solid var(--color-border)" }}
+              className="p-8 rounded-2xl border"
+              style={{ background: "rgba(255, 255, 255, 0.95)", borderColor: "rgba(15, 110, 86, 0.1)", boxShadow: "0 8px 24px rgba(15, 110, 86, 0.08)" }}
             >
               <p
-                className="text-lg mb-5"
+                className="text-2xl mb-8 leading-relaxed font-bold"
                 style={{ fontFamily: "var(--font-display)", color: "var(--color-ink)" }}
               >
-                &ldquo;{result.query}&rdquo;
+                &ldquo;<span className="gradient-text">{result.query}</span>&rdquo;
               </p>
               <TensionBar
                 supportingCount={result.supporting.length}
@@ -118,32 +129,32 @@ export default function Home() {
               />
 
               {/* Export button */}
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-end mt-8">
                 <ExportButton query={result.query} topK={20} />
               </div>
             </div>
 
             {/* Referee verdict */}
             <div
-              className="p-6 rounded-2xl"
-              style={{ background: "var(--color-verdict-bg)" }}
+              className="p-8 rounded-2xl border"
+              style={{ background: "var(--color-verdict-bg)", borderColor: "var(--color-verdict)" }}
             >
               <p
-                className="font-mono text-xs uppercase tracking-wider mb-2"
+                className="font-mono text-xs uppercase tracking-wider mb-3 font-bold"
                 style={{ color: "var(--color-verdict)" }}
               >
-                Why the evidence disagrees
+                🔎 Why the evidence disagrees
               </p>
-              <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--color-ink)" }}>
+              <p className="text-base leading-relaxed mb-6" style={{ color: "var(--color-ink)" }}>
                 {result.conflict_explanation}
               </p>
               <p
-                className="font-mono text-xs uppercase tracking-wider mb-2"
+                className="font-mono text-xs uppercase tracking-wider mb-3 font-bold"
                 style={{ color: "var(--color-verdict)" }}
               >
-                Referee&rsquo;s verdict
+                ⚖️ Referee&rsquo;s verdict
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--color-ink)" }}>
+              <p className="text-base leading-relaxed" style={{ color: "var(--color-ink)" }}>
                 {result.verdict}
               </p>
             </div>
@@ -151,13 +162,13 @@ export default function Home() {
             {/* Funding bias banner — only shown when bias is detected */}
             {result.funding_bias?.bias_flag && result.funding_bias.bias_note && (
               <div
-                className="p-4 rounded-xl flex gap-3 items-start"
-                style={{ background: "#FFF8E8", border: "1px solid #F0D080" }}
+                className="p-5 rounded-2xl flex gap-4 items-start border"
+                style={{ background: "#FFFBF0", borderColor: "#F0D080" }}
               >
-                <span className="text-lg leading-none mt-0.5">⚠️</span>
-                <div>
+                <span className="text-2xl leading-none mt-0.5 flex-shrink-0">⚠️</span>
+                <div className="flex-1">
                   <p
-                    className="font-mono text-xs uppercase tracking-wider mb-1"
+                    className="font-mono text-xs uppercase tracking-wider mb-2 font-bold"
                     style={{ color: "#8B6914" }}
                   >
                     Funding bias detected
@@ -176,14 +187,14 @@ export default function Home() {
             />
 
             {/* Two-camp grid */}
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-2 gap-8">
               <div>
                 <h2
-                  className="text-sm font-medium mb-3 flex items-center gap-2"
+                  className="text-lg font-bold mb-4 flex items-center gap-2"
                   style={{ color: "var(--color-support)" }}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-support)" }} />
-                  Supports the claim
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-support)" }} />
+                  ✓ Supports the claim
                 </h2>
                 <div className="space-y-3">
                   {result.supporting.map((s) => (
@@ -194,11 +205,11 @@ export default function Home() {
 
               <div>
                 <h2
-                  className="text-sm font-medium mb-3 flex items-center gap-2"
+                  className="text-lg font-bold mb-4 flex items-center gap-2"
                   style={{ color: "var(--color-contradict)" }}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-contradict)" }} />
-                  Contradicts the claim
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-contradict)" }} />
+                  ✗ Contradicts the claim
                 </h2>
                 <div className="space-y-3">
                   {result.contradicting.map((s) => (
@@ -212,11 +223,11 @@ export default function Home() {
             {result.neutral.length > 0 && (
               <div>
                 <h2
-                  className="text-sm font-medium mb-3 flex items-center gap-2"
+                  className="text-lg font-bold mb-4 flex items-center gap-2"
                   style={{ color: "var(--color-neutral)" }}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-neutral)" }} />
-                  Inconclusive or unrelated
+                  <span className="w-3 h-3 rounded-full" style={{ background: "var(--color-neutral)" }} />
+                  ◇ Inconclusive or unrelated
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {result.neutral.map((s) => (
@@ -229,9 +240,9 @@ export default function Home() {
         )}
 
         {!isLoading && !result && !error && (
-          <div className="text-center py-16">
-            <p className="text-sm" style={{ color: "var(--color-ink-soft)" }}>
-              Try one of the example questions above, or ask your own.
+          <div className="text-center py-20">
+            <p className="text-base" style={{ color: "var(--color-ink-soft)" }}>
+              Try one of the example questions above, or ask your own clinical question.
             </p>
           </div>
         )}
