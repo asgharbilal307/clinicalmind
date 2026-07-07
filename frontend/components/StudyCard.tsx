@@ -48,13 +48,18 @@ export function StudyCard({ study, variant }: StudyCardProps) {
       href={`https://pubmed.ncbi.nlm.nih.gov/${study.pmid}/`}
       target="_blank"
       rel="noopener noreferrer"
-      className="block p-4 rounded-xl bg-[var(--color-paper-raised)] card-hoverable focus-visible:outline-2 focus-visible:outline-offset-2"
-      style={{ borderLeft: `3px solid ${styles.border}`, outlineColor: styles.border }}
+      className="block p-5 rounded-xl bg-white card-hoverable focus-visible:outline-2 focus-visible:outline-offset-2 border transition-colors"
+      style={{ 
+        borderLeft: `4px solid ${styles.border}`,
+        borderColor: "rgba(0, 0, 0, 0.08)",
+        outlineColor: styles.border,
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)"
+      }}
     >
       {/* Top row — study type + quality + confidence */}
-      <div className="flex items-start flex-wrap gap-1.5 mb-2">
+      <div className="flex items-start flex-wrap gap-2 mb-3">
         <span
-          className="font-mono text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full"
+          className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-semibold"
           style={{ background: styles.badge, color: styles.badgeText }}
         >
           {STUDY_TYPE_LABELS[study.study_type] ?? "Study"}
@@ -62,7 +67,7 @@ export function StudyCard({ study, variant }: StudyCardProps) {
 
         {study.quality_score && study.quality_score !== "unknown" && (
           <span
-            className="font-mono text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full"
+            className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-semibold"
             style={{ background: quality.bg, color: quality.color }}
           >
             {quality.label}
@@ -71,15 +76,15 @@ export function StudyCard({ study, variant }: StudyCardProps) {
 
         {fundingLabel && (
           <span
-            className="font-mono text-[10px] px-2 py-0.5 rounded-full"
-            style={{ background: "var(--color-background-secondary)", color: "var(--color-text-secondary)" }}
+            className="font-mono text-[10px] px-2.5 py-1 rounded-full font-semibold"
+            style={{ background: "rgba(15, 110, 86, 0.1)", color: "var(--color-accent)" }}
           >
             {fundingLabel}
           </span>
         )}
 
         <span
-          className="font-mono text-[10px] ml-auto"
+          className="font-mono text-[10px] ml-auto font-medium"
           style={{ color: "var(--color-ink-soft)" }}
         >
           {Math.round(study.confidence * 100)}% confidence
@@ -87,19 +92,19 @@ export function StudyCard({ study, variant }: StudyCardProps) {
       </div>
 
       {/* Claim */}
-      <p className="text-sm leading-snug mb-2" style={{ color: "var(--color-ink)" }}>
+      <p className="text-sm leading-snug mb-3 font-semibold" style={{ color: "var(--color-ink)" }}>
         {study.claim}
       </p>
 
       {/* Reason */}
-      <p className="text-xs mb-3" style={{ color: "var(--color-ink-soft)" }}>
+      <p className="text-xs mb-3 leading-relaxed" style={{ color: "var(--color-ink-soft)" }}>
         {study.reason}
       </p>
 
       {/* Population context if available */}
       {(study.pop_age_group || study.pop_condition) && (
-        <p className="text-[11px] mb-2" style={{ color: "var(--color-ink-soft)" }}>
-          Population:{" "}
+        <p className="text-xs mb-3 p-2 rounded-lg" style={{ background: "rgba(15, 110, 86, 0.06)", color: "var(--color-ink-soft)" }}>
+          <span className="font-semibold text-accent">👥 Population:</span>{" "}
           {[study.pop_age_group, study.pop_condition, study.pop_severity]
             .filter(Boolean)
             .filter(v => v !== "unknown")
@@ -109,10 +114,10 @@ export function StudyCard({ study, variant }: StudyCardProps) {
 
       {/* Footer */}
       <div
-        className="flex items-center gap-2 text-[11px] pt-2 border-t flex-wrap"
-        style={{ color: "var(--color-ink-soft)" }}
+        className="flex items-center gap-2 text-[11px] pt-3 border-t flex-wrap"
+        style={{ color: "var(--color-ink-soft)", borderColor: "rgba(0, 0, 0, 0.06)" }}
       >
-        <span className="font-mono">PMID {study.pmid}</span>
+        <span className="font-mono font-semibold">PMID {study.pmid}</span>
         {study.year && <span>· {study.year}</span>}
         {study.journal && <span className="truncate">· {study.journal}</span>}
         {study.sample_size && <span>· n={study.sample_size.toLocaleString()}</span>}

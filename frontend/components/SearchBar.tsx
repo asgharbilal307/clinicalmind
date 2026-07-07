@@ -31,12 +31,13 @@ export function SearchBar({ onSubmit, isLoading }: SearchBarProps) {
           onChange={(e) => setValue(e.target.value)}
           placeholder="Ask a clinical question the literature disagrees on…"
           rows={2}
-          className="w-full resize-none rounded-2xl border px-5 py-4 pr-32 text-base leading-relaxed focus-visible:outline-2 focus-visible:outline-offset-2"
+          className="w-full resize-none rounded-2xl border px-6 py-5 pr-40 text-base leading-relaxed focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all"
           style={{
-            background: "var(--color-paper-raised)",
-            borderColor: "var(--color-border)",
+            background: "rgba(255, 255, 255, 0.9)",
+            borderColor: "rgba(15, 110, 86, 0.3)",
             color: "var(--color-ink)",
             fontFamily: "var(--font-body)",
+            boxShadow: "0 8px 24px rgba(15, 110, 86, 0.08)"
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -48,24 +49,34 @@ export function SearchBar({ onSubmit, isLoading }: SearchBarProps) {
         <button
           type="submit"
           disabled={isLoading || !value.trim()}
-          className="absolute right-3 bottom-3 px-5 py-2 rounded-full text-sm font-medium transition-opacity disabled:opacity-40 accent-btn"
+          className="absolute right-4 bottom-4 px-6 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-40 hover:scale-105 accent-btn"
         >
           {isLoading ? "Debating…" : "Debate"}
         </button>
       </form>
 
-      <div className="flex flex-wrap gap-2 mt-3">
-        {EXAMPLE_QUERIES.map((q) => (
-          <button
-            key={q}
-            onClick={() => !isLoading && onSubmit(q)}
-            disabled={isLoading}
-            className="text-xs px-3 py-1.5 rounded-full border transition-colors hover:bg-black/5 disabled:opacity-40"
-            style={{ borderColor: "var(--color-border)", color: "var(--color-ink-soft)" }}
-          >
-            {q.length > 50 ? q.slice(0, 50) + "…" : q}
-          </button>
-        ))}
+      <div className="mt-5">
+        <p className="text-xs font-semibold mb-3" style={{ color: "var(--color-ink-soft)" }}>
+          Try these questions:
+        </p>
+        <div className="flex flex-col gap-2">
+          {EXAMPLE_QUERIES.map((q) => (
+            <button
+              key={q}
+              onClick={() => !isLoading && onSubmit(q)}
+              disabled={isLoading}
+              className="text-sm px-4 py-3 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-md disabled:opacity-40 font-medium text-left"
+              style={{ 
+                borderColor: "rgba(15, 110, 86, 0.5)", 
+                color: "var(--color-ink)",
+                background: "rgba(15, 110, 86, 0.12)",
+                cursor: isLoading ? "not-allowed" : "pointer"
+              }}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
