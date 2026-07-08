@@ -49,28 +49,28 @@ export function ExportButton({ query, topK = 20 }: ExportButtonProps) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-2">
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all disabled:opacity-50 hover:scale-105 hover:shadow-lg"
         style={{
-          background: "var(--color-ink)",
-          color: "var(--color-paper)",
+          background: "var(--color-accent)",
+          color: "white"
         }}
       >
         {isExporting ? (
           <>
             <span
-              className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"
+              className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"
             />
             Generating PDF…
           </>
         ) : (
           <>
             <svg
-              width="14"
-              height="14"
+              width="16"
+              height="16"
               viewBox="0 0 14 14"
               fill="none"
               stroke="currentColor"
@@ -85,7 +85,7 @@ export function ExportButton({ query, topK = 20 }: ExportButtonProps) {
         )}
       </button>
       {error && (
-        <span className="text-[11px]" style={{ color: "var(--color-contradict)" }}>
+        <span className="text-xs font-medium px-2 py-1 rounded-lg" style={{ color: "var(--color-contradict)", background: "var(--color-contradict-bg)" }}>
           {error}
         </span>
       )}

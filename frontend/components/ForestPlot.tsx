@@ -137,14 +137,14 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
   );
 
   return (
-    <div className="rounded-2xl overflow-hidden card-hoverable" style={{ background: "var(--color-background-primary)", border: "1px solid var(--color-border-tertiary)" }}>
+    <div className="rounded-2xl overflow-hidden card-hoverable border" style={{ background: "rgba(255, 255, 255, 0.95)", borderColor: "rgba(15, 110, 86, 0.1)", boxShadow: "0 8px 24px rgba(15, 110, 86, 0.08)" }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: "var(--color-border-tertiary)" }}>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: "var(--color-text-secondary)" }}>Forest Plot</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "var(--color-background-secondary)", color: "var(--color-text-tertiary)" }}>bar length = confidence · opacity = quality</span>
+      <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(0, 0, 0, 0.06)" }}>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs uppercase tracking-wider font-semibold" style={{ color: "var(--color-accent)" }}>📊 Forest Plot</span>
+          <span className="text-xs px-3 py-1 rounded-full" style={{ background: "rgba(15, 110, 86, 0.08)", color: "var(--color-accent)", fontWeight: "500" }}>bar length = confidence · opacity = quality</span>
         </div>
-        <div className="flex items-center gap-3 text-[10px] font-mono">
+        <div className="flex items-center gap-4 text-xs font-mono font-semibold hidden sm:flex">
           <span style={{ color: "var(--color-contradict)" }}>← Contradicts</span>
           <span style={{ color: "var(--color-support)" }}>Supports →</span>
         </div>
@@ -152,23 +152,23 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
 
       {/* Column headers */}
       <div
-        className="flex items-center gap-3 px-4 py-1.5 border-b"
+        className="flex items-center gap-3 px-6 py-3 border-b"
         style={{
-          borderColor: "var(--color-border-tertiary)",
-          background: "var(--color-background-secondary)",
+          borderColor: "rgba(0, 0, 0, 0.06)",
+          background: "rgba(15, 110, 86, 0.04)",
         }}
       >
         <div className="w-52 shrink-0" />
         <div className="flex-1" />
         <span
-          className="font-mono text-[10px] w-9 text-right shrink-0"
-          style={{ color: "var(--color-text-tertiary)" }}
+          className="font-mono text-xs w-9 text-right shrink-0 font-semibold"
+          style={{ color: "var(--color-accent)" }}
         >
           Conf.
         </span>
         <span
-          className="font-mono text-[10px] w-14 text-right shrink-0 hidden sm:block"
-          style={{ color: "var(--color-text-tertiary)" }}
+          className="font-mono text-xs w-14 text-right shrink-0 hidden sm:block font-semibold"
+          style={{ color: "var(--color-accent)" }}
         >
           Sample
         </span>
@@ -177,12 +177,12 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
       <div className="px-2 py-2">
         {/* Supporting studies */}
         {sortedSupporting.length > 0 && (
-          <div className="mb-1">
+          <div className="mb-2">
             <p
-              className="font-mono text-[10px] uppercase tracking-wider px-2 py-1"
+              className="font-mono text-xs uppercase tracking-wider px-4 py-2 font-bold"
               style={{ color: "var(--color-support)" }}
             >
-              Supporting ({sortedSupporting.length})
+              ✓ Supporting ({sortedSupporting.length})
             </p>
             {sortedSupporting.map((s) => (
               <ForestBar key={s.pmid} study={s} direction="support" maxConfidence={maxConfidence} />
@@ -194,7 +194,7 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
         {sortedSupporting.length > 0 && sortedContradicting.length > 0 && (
           <div
             className="my-2 border-t border-dashed"
-            style={{ borderColor: "var(--color-border-tertiary)" }}
+            style={{ borderColor: "rgba(0, 0, 0, 0.08)" }}
           />
         )}
 
@@ -202,10 +202,10 @@ export function ForestPlot({ supporting, contradicting }: ForestPlotProps) {
         {sortedContradicting.length > 0 && (
           <div>
             <p
-              className="font-mono text-[10px] uppercase tracking-wider px-2 py-1"
+              className="font-mono text-xs uppercase tracking-wider px-4 py-2 font-bold"
               style={{ color: "var(--color-contradict)" }}
             >
-              Contradicting ({sortedContradicting.length})
+              ✗ Contradicting ({sortedContradicting.length})
             </p>
             {sortedContradicting.map((s) => (
               <ForestBar key={s.pmid} study={s} direction="contradict" maxConfidence={maxConfidence} />
